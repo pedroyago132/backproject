@@ -316,6 +316,8 @@ async function processMessage(phone, message) {
 
 app.post('/webhook', async (req, res) => {
   const { phone, message } = req.body;
+
+  console.log(req.body)
   
   if (!phone || !message) {
     return res.status(400).json({ error: "Dados incompletos" });
@@ -329,10 +331,26 @@ app.post('/webhook', async (req, res) => {
     res.status(500).json({ error: "Erro interno" });
   }
 });
+
+async function configureWebhook() {
+  try {
+    const response = await axios.put(
+      "https://api.z-api.io/instances/3E019F6A2AD3400FBE778E66062CE0C1/token/0F4CC44688C0009373197BB4/update-webhook-received",
+      { value: "https://backproject.vercel.app/weebhook" },
+      { headers: { 'Client-Token': 'F47c6b24b03ef4ecb84a2a76b0fc8617eS' } }
+    );
+    console.log('✅ Webhook configurado com sucesso:', response.data);
+  } catch (error) {
+    console.error('❌ Erro ao configurar webhook:', error.response?.data || error.message);
+  }
+}
+
+
 // 8. Inicialização
 const PORT = process.env.PORT || 3030;
 server.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📌 Estrutura Firebase: {userId}/agendamentos`);
   console.log('Sessões',activeSessions);
+  configureWebhook();
 });
