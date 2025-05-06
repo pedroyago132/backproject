@@ -319,7 +319,9 @@ app.post('/webhook', async (req, res) => {
 
   const message = req.body.text.message
 
-  console.log(req.body)
+  console.log('Telefone Contato', phone)
+
+  console.log('Mensagem Contato',phone)
   
   try {
     await processMessage(phone, message);
