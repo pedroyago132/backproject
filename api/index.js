@@ -42,6 +42,7 @@ const activeSessions = {};
 
 // 3. Middlewares
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: 'http://localhost:3000' }));
 
 // 4. Função para enviar mensagens
