@@ -313,27 +313,6 @@ async function processMessage(phone, message) {
   }
 }
 
-io.on('connection', (socket) => {
-  console.log('Novo cliente conectado:', socket.id);
-  
-  // Armazena a conexão quando vinculada a um telefone
-  socket.on('register-phone', (phone) => {
-    activeConnections[phone] = socket.id;
-    console.log(`Telefone ${phone} registrado com socket ${socket.id}`);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Cliente desconectado:', socket.id);
-    // Remove da lista de conexões ativas
-    for (const [phone, socketId] of Object.entries(activeConnections)) {
-      if (socketId === socket.id) {
-        delete activeConnections[phone];
-        break;
-      }
-    }
-  });
-});
-
 app.post('/webhook', async (req, res) => {
   const { phone, message } = req.body;
   
