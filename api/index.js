@@ -315,14 +315,12 @@ async function processMessage(phone, message) {
 }
 
 app.post('/webhook', async (req, res) => {
-  const { phone, message } = req.body;
+  const  phone = req.body.phone;
+
+  const message = req.body.text.message
 
   console.log(req.body)
   
-  if (!phone || !message) {
-    return res.status(400).json({ error: "Dados incompletos" });
-  }
-
   try {
     await processMessage(phone, message);
     res.status(200).json({ success: true });
