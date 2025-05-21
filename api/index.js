@@ -23,7 +23,7 @@ const firebaseConfig = {
 };
 
 const Globalurl = "https://api.z-api.io";
-const ClientToken = "F47c6b24b03ef4ecb84a2a76b0fc8617eS";
+const ClientToken = process.env.CLIENT_TOKEN;
 const workHours = ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
 
 const CLIENT_ID = process.env.CLIENT_ID;
