@@ -1,8 +1,5 @@
 .vercel
 node_modules
 # Arquivos ignorados
-.env
-*.env
-.env.local
-node_modules/
-env
+
+
