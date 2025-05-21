@@ -1,12 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const axios = require('axios');
 const http = require('http');
 const { Server } = require('socket.io');
 const { initializeApp } = require('firebase/app');
 const { getDatabase, ref, set, get, push, update, remove, query, orderByChild, equalTo } = require('firebase/database');
 const { Buffer } = require('buffer');
 const fetch = require('node-fetch');
+require('dotenv').config(); 
 
 // 1. Configurações
 const firebaseConfig = {
@@ -24,8 +26,8 @@ const Globalurl = "https://api.z-api.io";
 const ClientToken = "F47c6b24b03ef4ecb84a2a76b0fc8617eS";
 const workHours = ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
 
-const CLIENT_ID = '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';
-const CLIENT_SECRET = '450312285360-7ph6jle92fp2kv1dsuo1h2pde6ld7sdt.apps.googleusercontent.com';
+const CLIENT_ID = process.env.CLIENT_ID;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = 'http://localhost:3000/auth/callback';
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
