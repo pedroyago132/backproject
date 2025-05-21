@@ -24,6 +24,11 @@ const Globalurl = "https://api.z-api.io";
 const ClientToken = "F47c6b24b03ef4ecb84a2a76b0fc8617eS";
 const workHours = ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30"];
 
+const CLIENT_ID = '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';
+const CLIENT_SECRET = '450312285360-7ph6jle92fp2kv1dsuo1h2pde6ld7sdt.apps.googleusercontent.com';
+const REDIRECT_URI = 'http://localhost:3000/auth/callback';
+const SCOPES = ['https://www.googleapis.com/auth/calendar'];
+
 // 2. Inicialização
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getDatabase(firebaseApp);
@@ -100,7 +105,7 @@ async function findUserByNameBase64(nameBase64) {
 }
 
 async function getAvailableTimes(userId, date) {
-  const userData = await get(ref(db, `users/${userId}`)).then(s => s.val());
+  const userData = await get(ref(db, `${userId}`)).then(s => s.val());
   const appointments = Object.values(userData.agendamentos || {});
   const allEmployees = Object.keys(userData.funcionarios || {});
   
@@ -313,6 +318,80 @@ async function processMessage(phone, message) {
       break;
   }
 }
+
+app.get('/auth/google', (req, res) => {
+  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+  authUrl.searchParams.set('client_id', CLIENT_ID);
+  authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('scope', SCOPES.join(' '));
+  authUrl.searchParams.set('access_type', 'offline');
+  authUrl.searchParams.set('prompt', 'consent');
+
+  res.redirect(authUrl.toString());
+});
+
+app.get('/auth/callback', async (req, res) => {
+  const { code } = req.query;
+
+  try {
+    // Troca o código por tokens
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', {
+      code,
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      redirect_uri: REDIRECT_URI,
+      grant_type: 'authorization_code',
+    });
+
+    const { access_token, refresh_token } = data;
+
+
+          const tokens = {
+             userId:userId,
+             access_token,
+             refresh_token
+          };
+
+          // Salva no Firebase
+          await set(ref(db, `${userId}/tokens`), tokens);
+
+  } catch (error) {
+    console.error('Erro no callback:', error.response.data);
+    res.status(500).send('Falha na autenticação');
+  }
+});
+
+app.post('/auth/refresh', async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    // Busca dados do usuário no Firebase
+    const snapshot = await get(ref(db, userId));
+    const userData = snapshot.val();
+
+    if (!userData?.refresh_token) {
+      return res.status(401).json({ error: 'Usuário não autenticado' });
+    }
+
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', {
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      refresh_token: userData.refresh_token,
+      grant_type: 'refresh_token',
+    });
+
+    // Atualiza o token no Firebase
+    await set(ref(db, 'users/' + userId + '/access_token'), data.access_token);
+    await set(ref(db, 'users/' + userId + '/expires_in'), data.expires_in);
+
+    res.json({ access_token: data.access_token });
+
+  } catch (error) {
+    console.error('Erro ao renovar token:', error.response.data);
+    res.status(401).json({ error: 'Token expirado. Reautentique-se.' });
+  }
+});
 
 app.post('/webhook', async (req, res) => {
   const  phone = req.body.phone;
