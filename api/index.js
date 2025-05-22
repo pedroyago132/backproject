@@ -92,8 +92,8 @@ async function getAvailableEmployees(userId, date, time) {
 // 5. Busca usuário pelo nome em Base64
 async function findUserByNameBase64(nameBase64) {
   try {
-    const usersRef = ref(db, '/');
-    const snapshot = await get(query(usersRef, orderByChild('nameBase64'), equalTo(nameBase64)));
+    const userRef = get(ref(db, `${nameBase64}`));
+    const snapshot = await userRef.val()
     
     if (snapshot.exists()) {
       const users = snapshot.val();
