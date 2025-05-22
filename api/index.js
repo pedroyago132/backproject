@@ -396,36 +396,6 @@ console.log('DATA REFRESH:::',data)
   }
 });
 
-app.post('/webhook', async (req, res) => {
-  const  phone = req.body.phone;
-
-  const message = req.body.text.message
-
-  console.log('Telefone Contato', phone)
-
-  console.log('Mensagem Contato',phone)
-  
-  try {
-    await processMessage(phone, message);
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("Erro:", error);
-    res.status(500).json({ error: "Erro interno" });
-  }
-});
-
-async function configureWebhook() {
-  try {
-    const response = await axios.put(
-      "https://api.z-api.io/instances/3E19757BC3D3C0A275782A6BCFBBBF38/token/1591F8E112B23AA7B12BB43E/update-webhook-received",
-      { value: "https://backproject.vercel.app/weebhook" },
-      { headers: { 'Client-Token':'Fbd62247981a742ec897582f51b86779aS' } }
-    );
-    console.log('✅ Webhook configurado com sucesso:', response.data);
-  } catch (error) {
-    console.error('❌ Erro ao configurar webhook:', error.response?.data || error.message);
-  }
-}
 
 async function verifyAndRefreshToken(userId, margin = 300) {
   if (!userId) throw new Error('ID do usuário é obrigatório');
@@ -502,6 +472,36 @@ async function verifyAndRefreshToken(userId, margin = 300) {
   }
 }
 
+app.post('/webhook', async (req, res) => {
+  const  phone = req.body.phone;
+
+  const message = req.body.text.message
+
+  console.log('Telefone Contato', phone)
+
+  console.log('Mensagem Contato',phone)
+  
+  try {
+    await processMessage(phone, message);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Erro:", error);
+    res.status(500).json({ error: "Erro interno" });
+  }
+});
+
+async function configureWebhook() {
+  try {
+    const response = await axios.put(
+      "https://api.z-api.io/instances/3E19757BC3D3C0A275782A6BCFBBBF38/token/1591F8E112B23AA7B12BB43E/update-webhook-received",
+      { value: "https://backproject.vercel.app/weebhook" },
+      { headers: { 'Client-Token':'Fbd62247981a742ec897582f51b86779aS' } }
+    );
+    console.log('✅ Webhook configurado com sucesso:', response.data);
+  } catch (error) {
+    console.error('❌ Erro ao configurar webhook:', error.response?.data || error.message);
+  }
+}
 
 // 8. Inicialização
 const PORT = process.env.PORT || 3030;
