@@ -324,7 +324,7 @@ async function processMessage(phone, message) {
 }
 
 
-aapp.post('/auth/callback', async (req, res) => {
+app.post('/auth/callback', async (req, res) => {
   const { code, userId } = req.body; // Recebe o 'code' (não access_token)
 
   try {
