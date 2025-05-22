@@ -92,12 +92,10 @@ async function getAvailableEmployees(userId, date, time) {
 // 5. Busca usuário pelo nome em Base64
 async function findUserByNameBase64(nameBase64) {
   try {
-    const snapshott = get(ref(db, `/${nameBase64}`));
-    const  snapshot = (await snapshott).val()
-    
-    if (snapshot) {
-      const users = snapshot.val();
-      return Object.keys(users)[0]; // Retorna o primeiro ID encontrado
+    const snapshot = get(ref(db, `/${nameBase64}`));
+    const  data = snapshot.val()
+    if (data) {
+      return Object.keys(data)[0]; // Retorna o primeiro ID encontrado
     }
     return null;
   } catch (error) {
