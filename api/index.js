@@ -28,7 +28,7 @@ const workHours = ["10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00"
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = 'http://localhost:3000/auth/callback';
+const REDIRECT_URI = 'http://localhost:3000/google';
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
 // 2. Inicialização
@@ -50,12 +50,12 @@ const activeSessions = {};
 // 3. Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({ origin: 'https://backproject.vercel.app' }));
+app.use(cors({ origin: 'http://localhost:3000' }));
 
 // 4. Função para enviar mensagens
 async function sendMessageAll(body) {
   try {
-    const response = await fetch(`${Globalurl}/instances/3E019F6A2AD3400FBE778E66062CE0C1/token/0F4CC44688C0009373197BB4/send-text`, {
+    const response = await fetch(`${Globalurl}/instances/3E19757BC3D3C0A275782A6BCFBBBF38/token/1591F8E112B23AA7B12BB43E/send-text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -293,7 +293,9 @@ async function processMessage(phone, message) {
             createdAt: new Date().toISOString()
           };
 
-          // Salva no Firebase
+          const dataVerifyToken = await verifyAndRefreshToken(session.userId)
+
+          console.log('ACCESS TOKEN SUCESS',dataVerifyToken)
           await push(ref(db, `${session.userId}/agendamentos`), newAppointment);
           
           // Remove a sessão
@@ -321,20 +323,9 @@ async function processMessage(phone, message) {
   }
 }
 
-app.get('/auth/google', (req, res) => {
-  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  authUrl.searchParams.set('client_id', CLIENT_ID);
-  authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
-  authUrl.searchParams.set('response_type', 'code');
-  authUrl.searchParams.set('scope', SCOPES.join(' '));
-  authUrl.searchParams.set('access_type', 'offline');
-  authUrl.searchParams.set('prompt', 'consent');
 
-  res.redirect(authUrl.toString());
-});
-
-app.get('/auth/callback', async (req, res) => {
-  const { code } = req.query;
+aapp.post('/auth/callback', async (req, res) => {
+  const { code, userId } = req.body; // Recebe o 'code' (não access_token)
 
   try {
     // Troca o código por tokens
@@ -346,51 +337,61 @@ app.get('/auth/callback', async (req, res) => {
       grant_type: 'authorization_code',
     });
 
-    const { access_token, refresh_token } = data;
+    const { 
+      access_token, 
+      expires_in, 
+      refresh_token,
+      token_type 
+    } = data;
 
+    // Calcula a data de expiração
+    const expires_at = Date.now() + (expires_in * 1000);
+    
+    const tokens = {
+      access_token,
+      expires_at, // Armazenamos o timestamp de expiração
+      refresh_token,
+      token_type
+    };
 
-          const tokens = {
-             userId:userId,
-             access_token,
-             refresh_token
-          };
+    // Salva no Firebase
+    await set(ref(db, `${userId}/tokens`), tokens);
 
-          // Salva no Firebase
-          await set(ref(db, `${userId}/tokens`), tokens);
+    res.status(200).json({ 
+      success: true,
+      access_token,
+      expires_in 
+    });
 
   } catch (error) {
-    console.error('Erro no callback:', error.response.data);
-    res.status(500).send('Falha na autenticação');
+    console.error('Erro no callback:', error.response?.data || error.message);
+    res.status(500).json({ 
+      error: 'Falha na autenticação',
+      details: error.response?.data || error.message 
+    });
   }
 });
 
 app.post('/auth/refresh', async (req, res) => {
-  const { userId } = req.body;
+  const { userId,access_token } = req.body;
 
   try {
     // Busca dados do usuário no Firebase
     const snapshot = await get(ref(db, userId));
     const userData = snapshot.val();
 
-    if (!userData?.refresh_token) {
-      return res.status(401).json({ error: 'Usuário não autenticado' });
-    }
 
     const { data } = await axios.post('https://oauth2.googleapis.com/token', {
       client_id: CLIENT_ID,
       client_secret: CLIENT_SECRET,
-      refresh_token: userData.refresh_token,
+      access_token:access_token,
       grant_type: 'refresh_token',
     });
 
-    // Atualiza o token no Firebase
-    await set(ref(db, 'users/' + userId + '/access_token'), data.access_token);
-    await set(ref(db, 'users/' + userId + '/expires_in'), data.expires_in);
-
-    res.json({ access_token: data.access_token });
+console.log('DATA REFRESH:::',data)
 
   } catch (error) {
-    console.error('Erro ao renovar token:', error.response.data);
+    console.error('Erro ao renovar token:', error);
     res.status(401).json({ error: 'Token expirado. Reautentique-se.' });
   }
 });
@@ -423,6 +424,81 @@ async function configureWebhook() {
     console.log('✅ Webhook configurado com sucesso:', response.data);
   } catch (error) {
     console.error('❌ Erro ao configurar webhook:', error.response?.data || error.message);
+  }
+}
+
+async function verifyAndRefreshToken(userId, margin = 300) {
+  if (!userId) throw new Error('ID do usuário é obrigatório');
+
+  // 1. Buscar tokens no banco de dados
+  const snapshot = await get(ref(db, `users/${userId}/tokens`));
+  const tokens = snapshot.val();
+  
+  if (!tokens) throw new Error('Nenhum token encontrado para este usuário');
+  if (!tokens.refresh_token) throw new Error('Refresh token não disponível');
+
+  // 2. Verificar validade do access token
+  const currentTime = Date.now();
+  const isTokenValid = tokens.access_token_expiry 
+    && (tokens.access_token_expiry - currentTime > margin * 1000);
+
+  // 3. Se o token ainda é válido, retorná-lo
+  if (isTokenValid) {
+    return {
+      access_token: tokens.access_token,
+      expires_in: Math.floor((tokens.access_token_expiry - currentTime) / 1000),
+      token_type: tokens.token_type || 'Bearer'
+    };
+  }
+
+  // 4. Verificar validade do refresh token
+  if (currentTime > tokens.refresh_token_expiry) {
+    throw {
+      message: 'Refresh token expirado. Reautentique-se.',
+      requiresReauth: true
+    };
+  }
+
+  // 5. Renovar o access token
+  try {
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', {
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      refresh_token: tokens.refresh_token,
+      grant_type: 'refresh_token',
+    });
+
+    // 6. Atualizar no banco de dados
+    const newExpiry = currentTime + (data.expires_in * 1000);
+    const updatedTokens = {
+      ...tokens,
+      access_token: data.access_token,
+      access_token_expiry: newExpiry
+    };
+
+    await set(ref(db, `users/${userId}/tokens`), updatedTokens);
+
+    return {
+      access_token: data.access_token,
+      expires_in: data.expires_in,
+      token_type: data.token_type || 'Bearer'
+    };
+
+  } catch (error) {
+    console.error('Erro ao renovar token:', error.response?.data || error.message);
+    
+    if (error.response?.status === 400) {
+      throw {
+        message: 'Refresh token inválido. Reautentique-se.',
+        requiresReauth: true,
+        details: error.response.data
+      };
+    }
+    
+    throw {
+      message: 'Erro ao renovar token',
+      details: error.response?.data || error.message
+    };
   }
 }
 
