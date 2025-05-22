@@ -90,20 +90,30 @@ async function getAvailableEmployees(userId, date, time) {
     }));
 }
 // 5. Busca usuário pelo nome em Base64
+
+
 async function findUserByNameBase64(nameBase64) {
   try {
-    const snapshot = get(ref(db, `/${nameBase64}`));
-    const  data = snapshot.val()
-    if (data) {
-      return Object.keys(data)[0]; // Retorna o primeiro ID encontrado
+    // 1. Cria a referência para o nó no banco de dados
+    const userRef = ref(db, nameBase64);
+    
+    // 2. Usa await para obter o snapshot (a função get é assíncrona)
+    const snapshot = await get(userRef);
+    
+    // 3. Verifica se existe algum dado
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      
+      // 4. Retorna o primeiro ID encontrado (se a estrutura for { userId: {...} })
+      return Object.keys(data)[0];
     }
+    
     return null;
   } catch (error) {
     console.error('Erro ao buscar usuário:', error);
-    return null;
+    throw error; // Melhor propagar o erro para quem chamou a função
   }
 }
-
 async function getAvailableTimes(userId, date) {
   const userData = await get(ref(db, `${userId}`)).then(s => s.val());
   const appointments = Object.values(userData.agendamentos || {});
