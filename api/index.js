@@ -59,7 +59,7 @@ async function sendMessageAll(body) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Client-Token': ClientToken,
+        'Client-Token': 'Fbd62247981a742ec897582f51b86779aS',
       },
       body: JSON.stringify(body),
     });
@@ -479,7 +479,7 @@ app.post('/webhook', async (req, res) => {
 
   console.log('Telefone Contato', phone)
 
-  console.log('Mensagem Contato',phone)
+  console.log('Mensagem Contato',message)
   
   try {
     await processMessage(phone, message);
