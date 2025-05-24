@@ -181,7 +181,7 @@ if (!session) return;
 
 
 
-if (questionsList.length <= 0) {
+if (session.questions.length <= 0) {
   session.step = 'waiting_client_name'
 }
 
