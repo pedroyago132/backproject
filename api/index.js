@@ -150,6 +150,40 @@ async function getAvailableTimes(userId, date) {
   });
 }
 
+async function findUserByInstance(instanceId) {
+  try {
+    const usersRef = ref(db, 'users');
+    const snapshot = await get(usersRef);
+    
+    if (!snapshot.exists()) {
+      console.log("Nenhum usuário encontrado");
+      return null;
+    }
+
+    // Correção: acessar userData.tokenZAPI corretamente
+    const userEntry = Object.entries(snapshot.val()).find(
+      ([userId, userData]) => 
+        userData.tokenZAPI && 
+        userData.tokenZAPI.instance === instanceId
+    );
+
+    if (userEntry) {
+      const [userId, userData] = userEntry;
+      return {
+        userId,
+        ...userData.tokenZAPI
+      };
+    }
+
+    console.log("Instância não encontrada");
+    return null;
+
+  } catch (error) {
+    console.error("Erro ao buscar usuário:", error);
+    throw error;
+  }
+}
+
 
 // 6. Processador de Mensagens
 async function processMessage(phone, message,instanceId) {
@@ -158,11 +192,9 @@ async function processMessage(phone, message,instanceId) {
     const snapshot = await get(userRef) || []
 
 
-    const findUserByInstance = Object.entries(snapshot.val()).find(user => user.tokenZAPI?.instance == instanceId)
-    console.log('Snapshot>>>>::::::::::::::::::::::::::::',snapshot.val())
-    console.log('FINDUSERBYINSTANCE::::::::::::::::::::::::::::',findUserByInstance)
+    const findUserByInstance = findUserByInstance(instanceId)
 
-    console.log('INSTANCEID::::::::::::::::::::::::::::',instanceId)
+    console.log('FINDUSERBYISNTANCE:::::::::::::::',findUserByInstance)
 
   if (!activeSessions[phone]) {
     // Inicia diretamente com a escolha inicial
