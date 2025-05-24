@@ -157,8 +157,8 @@ async function processMessage(phone, message) {
   // Verifica se é uma nova sessão
   if (!activeSessions[phone]) {
     // Inicia automaticamente a automação
-      const questionsList = await get(ref(db, `${session.userId}/mensagens`)).then(s => s.val());
-      
+
+
     activeSessions[phone] = {
       step: 'waiting_client_name',
       currentQuestionIndex: 0,
@@ -171,6 +171,7 @@ async function processMessage(phone, message) {
       selectedEmployee: null
     };}
 
+          const questionsList = await get(ref(db, `${session.userId}/mensagens`)).then(s => s.val());
   const session = activeSessions[phone];
   if (!session) return;
 
