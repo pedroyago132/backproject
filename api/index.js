@@ -109,29 +109,52 @@ async function getAvailableEmployees(userId, date, time) {
 }
 // 5. Busca usuário pelo nome em Base64
 
-
-async function findUserByNameBase64(nameBase64) {
+function formatDateTime(dateYYYYMMDD, timeHHMM, durationMinutes = 30) {
   try {
-    // 1. Cria a referência para o nó no banco de dados
-    const userRef = ref(db, nameBase64);
-
-    // 2. Usa await para obter o snapshot (a função get é assíncrona)
-    const snapshot = await get(userRef);
-
-    // 3. Verifica se existe algum dado
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-
-      // 4. Retorna o primeiro ID encontrado (se a estrutura for { userId: {...} })
-      return Object.keys(data)[0];
+    // Verifica se os parâmetros estão no formato correto
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateYYYYMMDD) || !/^\d{2}:\d{2}$/.test(timeHHMM)) {
+      throw new Error('Formato inválido. Use YYYY-MM-DD para data e HH:MM para hora');
     }
 
-    return null;
+    // Extrai ano, mês, dia
+    const [year, month, day] = dateYYYYMMDD.split('-').map(Number);
+    const [hours, minutes] = timeHHMM.split(':').map(Number);
+
+    // Valida os valores
+    if (month < 1 || month > 12 || day < 1 || day > 31) {
+      throw new Error('Data inválida');
+    }
+
+    // Cria a data com validação
+    const startDateTime = new Date(year, month - 1, day, hours, minutes);
+    
+    // Verifica se a data criada é válida
+    if (isNaN(startDateTime.getTime())) {
+      throw new Error('Data/hora inválida');
+    }
+
+    // Calcula a data de término
+    const endDateTime = new Date(startDateTime.getTime() + durationMinutes * 60000);
+
+    // Formata para ISO 8601 (UTC)
+    const formatISO = (date) => {
+      const pad = (num) => num.toString().padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T` +
+             `${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+    };
+
+    return {
+      start: formatISO(startDateTime),
+      end: formatISO(endDateTime),
+      timeZone: 'America/Sao_Paulo' // Opcional
+    };
+
   } catch (error) {
-    console.error('Erro ao buscar usuário:', error);
-    throw error; // Melhor propagar o erro para quem chamou a função
+    console.error('Erro em formatDateTime:', error.message);
+    throw new Error('Falha ao formatar data. Verifique os valores e formatos (YYYY-MM-DD para data e HH:MM para hora)');
   }
 }
+
 async function getAvailableTimes(userId, date) {
   const userData = await get(ref(db, `${userId}`)).then(s => s.val());
   const appointments = Object.values(userData.agendamentos || {});
@@ -817,26 +840,6 @@ async function configureWebhook() {
   }
 }
 
-function formatDateTime(dateDDMM, timeHHMM, durationMinutes = 30) {
-  // Extrai dia e mês (assumindo ano atual ou pode especificar um)
-  const [day, month] = dateDDMM.split('/').map(Number);
-  const year = new Date().getFullYear(); // Ou fixe como 2025 se preferir
-
-  // Extrai horas e minutos
-  const [hours, minutes] = timeHHMM.split(':').map(Number);
-
-  // Cria a data de início
-  const startDateTime = new Date(year, month - 1, day, hours, minutes);
-  const endDateTime = new Date(startDateTime.getTime() + durationMinutes * 60000);
-
-  // Formata para ISO 8601 (sem timezone, pois já usamos timeZone no objeto)
-  const formatISO = (date) => date.toISOString().replace(/\..+/, '').replace('Z', '');
-
-  return {
-    start: formatISO(startDateTime),
-    end: formatISO(endDateTime)
-  };
-}
 
 // 8. Inicialização
 const PORT = process.env.PORT || 3030;
