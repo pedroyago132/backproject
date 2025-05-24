@@ -159,6 +159,7 @@ async function processMessage(phone, message,instanceId) {
 
 
     const findUserByInstance = Object.entries(snapshot.val()).find(user => user.instance == instanceId)
+    console.log('Snapshot>>>>::::::::::::::::::::::::::::',snapshot.val())
     console.log('FINDUSERBYINSTANCE::::::::::::::::::::::::::::',findUserByInstance)
 
     console.log('INSTANCEID::::::::::::::::::::::::::::',instanceId)
