@@ -282,7 +282,7 @@ async function processMessage(phone, message, instanceId) {
         }
       } else if (message === '2') {
         const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
-        const services = Object.entries(userData.servicos || {})
+        const services = Object.entries(userData.servicos)
           .map((s, i) =>
             `*${i + 1}. ${s.nome}* - R$ ${s.valor}\n` +
             `${s.descricao || 'Sem descrição disponível'}\n` +
@@ -378,7 +378,7 @@ async function processMessage(phone, message, instanceId) {
 
         await sendMessageAll({
           phone: `+${phone}`,
-          message: `⏰ *Horários disponíveis para ${message}:*\n${availableTimes.map(t => `• ${t}`).join('\n')}\n\n*Digite o horário desejado:*`
+          message: `⏰ *Horários disponíveis para ${message}:*\n${availableTimes.map(t => `• ${t}`).join('\n')}\n\n*Digite o horário desejado: *Exemplo: 10:00**`
         });
 
       } catch (error) {
@@ -393,6 +393,7 @@ async function processMessage(phone, message, instanceId) {
       if (workHours.includes(message)) {
         session.selectedTime = message;
         session.step = 'waiting_service';
+    
 
         const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
         const services = Object.values(userData.servicos || {})
@@ -404,10 +405,12 @@ async function processMessage(phone, message, instanceId) {
           message: `💇 Serviços disponíveis:\n${services}\n\n*Digite o número do serviço:*`
         });
       } else {
+            const availableTimes = await getAvailableTimes(session.userId, session.selectedDate);
         await sendMessageAll({
           phone: `+${phone}`,
-          message: "⚠️ Horário inválido. Escolha da lista:"
+          message: `⚠️ Horário inválido. Escolha da lista: no formato: >> *10:00*\n\n${availableTimes}`
         });
+        session.step = 'waiting_service'
       }
       break;
 
