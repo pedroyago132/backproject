@@ -161,6 +161,8 @@ async function processMessage(phone, message,instanceId) {
     const findUserByInstance = Object.entries(snapshot.val()).find(user => user.instance == instanceId)
     console.log('FINDUSERBYINSTANCE::::::::::::::::::::::::::::',findUserByInstance)
 
+    console.log('INSTANCEID::::::::::::::::::::::::::::',instanceId)
+
   if (!activeSessions[phone]) {
     // Inicia diretamente com a escolha inicial
     activeSessions[phone] = {
@@ -703,7 +705,9 @@ app.post('/webhook', async (req, res) => {
 
   console.log('Mensagem Contato', message)
 
-  console.log('CORPO DA RESPOTA WEBHOOK', req)
+  
+  console.log('Instance ID', instanceId)
+
   try {
     await processMessage(phone, message,instanceId);
     res.status(200).json({ success: true });
