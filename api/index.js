@@ -152,7 +152,7 @@ async function getAvailableTimes(userId, date) {
 
 async function findUserByInstance(instanceId) {
   try {
-    const usersRef = ref(db, 'users');
+    const usersRef = ref(db, '/');
     const snapshot = await get(usersRef);
     
     if (!snapshot.exists()) {
@@ -192,9 +192,9 @@ async function processMessage(phone, message,instanceId) {
     const snapshot = await get(userRef) || []
 
 
-    const findUserByInstance = findUserByInstance(instanceId)
+    const findByInstance = findUserByInstance(instanceId)
 
-    console.log('FINDUSERBYISNTANCE:::::::::::::::',findUserByInstance)
+    console.log('FINDUSERBYISNTANCE:::::::::::::::',findByInstance)
 
   if (!activeSessions[phone]) {
     // Inicia diretamente com a escolha inicial
