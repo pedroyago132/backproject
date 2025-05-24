@@ -152,15 +152,15 @@ async function getAvailableTimes(userId, date) {
 
 
 // 6. Processador de Mensagens
-async function processMessage(phone, message) {
+async function processMessage(phone, message,instanceId) {
 
- if (!activeSessions[phone]) {
-    // Cria a sessão primeiro
+  if (!activeSessions[phone]) {
+    // Inicia diretamente com a escolha inicial
     activeSessions[phone] = {
-      step: 'waiting_client_name',
+      step: 'waiting_initial_choice',
       currentQuestionIndex: 0,
-      questions: [], // Inicializa vazio, será preenchido depois
-      userId: 'auto_user_' + phone, // ID automático baseado no telefone
+      questions: [],
+      userId: 'auto_user_' + phone,
       clientName: null,
       selectedDate: null,
       selectedTime: null,
@@ -168,15 +168,9 @@ async function processMessage(phone, message) {
       selectedEmployee: null
     };
 
-    // Agora que a sessão existe, podemos buscar as perguntas
-    const session = activeSessions[phone];
-    session.questions = await get(ref(db, `${session.userId}/mensagens`))
-      .then(s => s.val() || [])
-      .catch(() => []);
-
     await sendMessageAll({
       phone: `+${phone}`,
-      message: "👋 *Bem-vindo ao Agendamento Automático!*\n\nPor favor, digite seu *nome completo* para começar:"
+      message: "👋 *Bem-vindo!* Escolha uma opção:\n\n1. Iniciar agendamento\n2. Conhecer serviços e valores"
     });
     return;
   }
@@ -227,42 +221,72 @@ if (session.step === 'answering_questions') {
 
 // Fluxo principal
 switch (session.step) {
-  case 'waiting_client_name':
-    session.clientName = message;
-    session.step = 'waiting_initial_choice';
-    await sendMessageAll({
-      phone: `+${phone}`,
-      message: `👋 *Olá ${message}*! Escolha uma opção:\n\n1. Iniciar agendamento\n2. Conhecer serviços e valores`
-    });
-    break;
 
-  case 'waiting_initial_choice':
-    if (message === '1') {
-      // Inicia fluxo de perguntas
-      session.step = 'answering_questions';
-      await sendMessage(phone, session.questions[session.currentQuestionIndex].question);
-    } else if (message === '2') {
-      // Mostra serviços com descrições
-      const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
-      const services = Object.values(userData.servicos || {})
-        .map((s, i) =>
-          `*${i + 1}. ${s.nome}* - R$ ${s.valor}\n` +
-          `${s.descricao || 'Sem descrição disponível'}\n` +
-          `──────────────────`
-        )
-        .join('\n');
+    case 'waiting_initial_choice':
+      if (message === '1') {
+        // Busca perguntas do banco de dados
+        session.questions = await get(ref(db, `${session.userId}/mensagens`))
+          .then(s => s.val() || [])
+          .catch(() => []);
+        
+        if (session.questions.length > 0) {
+          session.step = 'answering_questions';
+          await sendMessage(phone, session.questions[0].question);
+        } else {
+          session.step = 'waiting_client_name';
+          await sendMessageAll({
+            phone: `+${phone}`,
+            message: "Por favor, digite seu *nome completo* para continuar:"
+          });
+        }
+      } else if (message === '2') {
+        const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
+        const services = Object.values(userData.servicos || {})
+          .map((s, i) => 
+            `*${i+1}. ${s.nome}* - R$ ${s.valor}\n` +
+            `${s.descricao || 'Sem descrição disponível'}\n` +
+            `──────────────────`
+          )
+          .join('\n');
+        
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: `💎 *SERVIÇOS DISPONÍVEIS* 💎\n\n${services}\n\n*Digite 1 para iniciar agendamento*`
+        });
+      } else {
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: "⚠️ Opção inválida. Por favor, *digite*\n\n1️⃣ Para *Iniciar Agendamento*\n2️⃣ Para *Ver Serviços*"
+        });
+      }
+      break;
 
+    case 'answering_questions':
+      const currentQ = session.questions[session.currentQuestionIndex];
+      currentQ.answer = message;
+
+      if (session.currentQuestionIndex < session.questions.length - 1) {
+        session.currentQuestionIndex++;
+        await sendMessage(phone, session.questions[session.currentQuestionIndex].question);
+      } else {
+        session.step = 'waiting_client_name';
+        const summary = session.questions.map(q => `• ${q.question}: ${q.answer}`).join('\n');
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: `📋 *Resumo das Respostas*\n${summary}\n\nPor favor, digite seu *nome completo* para continuar:`
+        });
+      }
+      break;
+
+    case 'waiting_client_name':
+      session.clientName = message;
+      session.step = 'waiting_date';
       await sendMessageAll({
         phone: `+${phone}`,
-        message: `🔝 *SERVIÇOS DISPONÍVEIS* 🔝\n\n${services}\n\n*Digite 1 para iniciar agendamento*`
+        message: `👋 *Olá ${message}!* Informe a data desejada (DD/MM):\n*Exemplo: 25/12*`
       });
-    } else {
-      await sendMessageAll({
-        phone: `+${phone}`,
-        message: "⚠️ Opção inválida. *Digite:\n1. Iniciar agendamento\n2. Ver serviços*"
-      });
-    }
-    break;
+      break;
+
 
   case 'waiting_date':
     if (/^\d{2}\/\d{2}$/.test(message)) {
@@ -670,13 +694,15 @@ app.post('/webhook', async (req, res) => {
 
   const message = req.body.text.message
 
+  const instanceId = req.body.instanceId
+
   console.log('Telefone Contato', phone)
 
   console.log('Mensagem Contato', message)
 
   console.log('CORPO DA RESPOTA WEBHOOK', req)
   try {
-    await processMessage(phone, message);
+    await processMessage(phone, message,instanceId);
     res.status(200).json({ success: true });
   } catch (error) {
     console.error("Erro:", error);
