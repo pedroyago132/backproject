@@ -499,7 +499,7 @@ async function processMessage(phone, message, instanceId) {
             serviceValue: session.selectedService.valor,
             clientPhone: phone,
             clientName: session.clientName,
-            establishment: session.userBase64, // Vincula ao Base64 do estabelecimento
+            establishment: session.userId, // Vincula ao Base64 do estabelecimento
             status: 'confirmed',
             createdAt: new Date().toISOString()
           };
