@@ -185,6 +185,7 @@ if (questionsList.length <= 0) {
   session.step = 'waiting_client_name'
 }
 
+/*
 if (session.step === 'answering_questions') {
   await sendMessage(phone, activeSessions[phone].questions[0].question);
   const currentQ = session.questions[session.currentQuestionIndex];
@@ -217,7 +218,7 @@ if (session.step === 'answering_questions') {
 
   const summary = session.questions.map(q => `• ${q.question}: ${q.answer}`).join('\n');
 
-}
+}*/
 
 // Fluxo principal
 switch (session.step) {
