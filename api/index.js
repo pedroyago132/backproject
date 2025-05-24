@@ -154,6 +154,12 @@ async function getAvailableTimes(userId, date) {
 // 6. Processador de Mensagens
 async function processMessage(phone, message,instanceId) {
 
+    const userRef = ref(db, '/');
+    const snapshot = await get(userRef) || []
+
+    const findUserByInstance = snapshot.val().find(user => user.instance == instanceId)
+    console.log('FINDUSERBYINSTANCE:::::', findUserByInstance)
+
   if (!activeSessions[phone]) {
     // Inicia diretamente com a escolha inicial
     activeSessions[phone] = {
@@ -179,11 +185,6 @@ const session = activeSessions[phone];
 if (!session) return;
 
 
-
-
-if (session.questions.length <= 0) {
-  session.step = 'waiting_client_name'
-}
 
 /*
 if (session.step === 'answering_questions') {
