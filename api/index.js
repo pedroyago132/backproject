@@ -528,11 +528,11 @@ async function processMessage(phone, message, instanceId) {
               console.log('AGENDAMENTO NO GOOGLE AGENDA FEITO COM SUCESSO::::', calendarEvent)
             }
 
+          console.log('ACCESS TOKEN SUCESS', dataVerifyToken)
 
           }
 
 
-          console.log('ACCESS TOKEN SUCESS', dataVerifyToken)
 
           await push(ref(db, `${session.userId}/agendamentos`), newAppointment);
 
