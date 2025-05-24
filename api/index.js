@@ -192,7 +192,7 @@ async function processMessage(phone, message,instanceId) {
     const snapshot = await get(userRef) || []
 
 
-    const findByInstance = findUserByInstance(instanceId)
+    const findByInstance = await findUserByInstance(instanceId)
 
     console.log('FINDUSERBYISNTANCE:::::::::::::::',findByInstance)
 
