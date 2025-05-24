@@ -523,7 +523,7 @@ async function processMessage(phone, message, instanceId) {
           if (snapShotIdcalendar) {
             const dataVerifyToken = await verifyAndRefreshToken(session.userId)
 
-            if (dataVerifyToken) {
+            if (dataVerifyToken?.access_token) {
               const calendarEvent = await createGoogleCalendarEvent(snapShotIdcalendar.idAgenda, dataVerifyToken.access_token, eventData)
               console.log('AGENDAMENTO NO GOOGLE AGENDA FEITO COM SUCESSO::::', calendarEvent)
             }
