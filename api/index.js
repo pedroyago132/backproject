@@ -158,7 +158,7 @@ async function processMessage(phone, message,instanceId) {
     const snapshot = await get(userRef) || []
 
 
-    const findUserByInstance = Object.entries(snapshot.val()).find(user => user.tokenZAPI.instance == instanceId)
+    const findUserByInstance = Object.entries(snapshot.val()).find(user => user.tokenZAPI?.instance == instanceId)
     console.log('Snapshot>>>>::::::::::::::::::::::::::::',snapshot.val())
     console.log('FINDUSERBYINSTANCE::::::::::::::::::::::::::::',findUserByInstance)
 
