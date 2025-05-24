@@ -127,7 +127,7 @@ function formatDateTime(dateYYYYMMDD, timeHHMM, durationMinutes = 30) {
 
     // Cria a data com validação
     const startDateTime = new Date(year, month - 1, day, hours, minutes);
-    
+
     // Verifica se a data criada é válida
     if (isNaN(startDateTime.getTime())) {
       throw new Error('Data/hora inválida');
@@ -140,7 +140,7 @@ function formatDateTime(dateYYYYMMDD, timeHHMM, durationMinutes = 30) {
     const formatISO = (date) => {
       const pad = (num) => num.toString().padStart(2, '0');
       return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T` +
-             `${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+        `${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
     };
 
     return {
@@ -416,7 +416,7 @@ async function processMessage(phone, message, instanceId) {
       if (workHours.includes(message)) {
         session.selectedTime = message;
         session.step = 'waiting_service';
-    
+
 
         const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
         const services = Object.values(userData.servicos || {})
@@ -428,7 +428,7 @@ async function processMessage(phone, message, instanceId) {
           message: `💇 Serviços disponíveis:\n${services}\n\n*Digite o número do serviço:*`
         });
       } else {
-            const availableTimes = await getAvailableTimes(session.userId, session.selectedDate);
+        const availableTimes = await getAvailableTimes(session.userId, session.selectedDate);
         await sendMessageAll({
           phone: `+${phone}`,
           message: `⚠️ Horário inválido. Escolha da lista: no formato: >> *10:00*\n\n${availableTimes}`
@@ -518,14 +518,16 @@ async function processMessage(phone, message, instanceId) {
 
           const userIdCalendar = await get(ref(db, `${session.userId}/googleAgenda`)).then(s => s.val().idAgenda);
 
+          if (userIdCalendar) {
+            const dataVerifyToken = await verifyAndRefreshToken(session.userId)
 
-          const dataVerifyToken = await verifyAndRefreshToken(session.userId)
+            if (dataVerifyToken) {
+              const calendarEvent = await createGoogleCalendarEvent(userIdCalendar, dataVerifyToken.access_token, eventData)
+              console.log('AGENDAMENTO NO GOOGLE AGENDA FEITO COM SUCESSO::::', calendarEvent)
+            }
 
-          if (dataVerifyToken) {
-            const calendarEvent = await createGoogleCalendarEvent(userIdCalendar, dataVerifyToken.access_token, eventData)
-            console.log('AGENDAMENTO NO GOOGLE AGENDA FEITO COM SUCESSO::::', calendarEvent)
+
           }
-
 
 
           console.log('ACCESS TOKEN SUCESS', dataVerifyToken)
