@@ -158,7 +158,8 @@ async function processMessage(phone, message,instanceId) {
     const snapshot = await get(userRef) || []
 
 
-    console.log('FINDUSERBYINSTANCE:::::', snapshot.val())
+    const findUserByInstance = Object.entries(snapshot.val()).find(user => user.instance == instanceId)
+    console.log('FINDUSERBYINSTANCE::::::::::::::::::::::::::::',findUserByInstance)
 
   if (!activeSessions[phone]) {
     // Inicia diretamente com a escolha inicial
