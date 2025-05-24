@@ -516,13 +516,15 @@ async function processMessage(phone, message, instanceId) {
             },
           };
 
-          const userIdCalendar = await get(ref(db, `${session.userId}/googleAgenda`)).then(s => s.val().idAgenda);
+          const userIdCalendar = await get(ref(db, `${session.userId}/googleAgenda`))
 
-          if (userIdCalendar) {
+          const snapShotIdcalendar = userIdCalendar.val();
+
+          if (snapShotIdcalendar) {
             const dataVerifyToken = await verifyAndRefreshToken(session.userId)
 
             if (dataVerifyToken) {
-              const calendarEvent = await createGoogleCalendarEvent(userIdCalendar, dataVerifyToken.access_token, eventData)
+              const calendarEvent = await createGoogleCalendarEvent(snapShotIdcalendar.idAgenda, dataVerifyToken.access_token, eventData)
               console.log('AGENDAMENTO NO GOOGLE AGENDA FEITO COM SUCESSO::::', calendarEvent)
             }
 
