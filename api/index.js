@@ -194,7 +194,10 @@ async function processMessage(phone, message,instanceId) {
 
     const findByInstance = await findUserByInstance(instanceId)
 
-    console.log('FINDUSERBYISNTANCE:::::::::::::::',findByInstance)
+    const preId = findByInstance.userEmail;
+const userId = Buffer.from(preId).toString('base64');
+
+
 
   if (!activeSessions[phone]) {
     // Inicia diretamente com a escolha inicial
@@ -202,7 +205,7 @@ async function processMessage(phone, message,instanceId) {
       step: 'waiting_initial_choice',
       currentQuestionIndex: 0,
       questions: [],
-      userId: 'auto_user_' + phone,
+      userId: userId,
       clientName: null,
       selectedDate: null,
       selectedTime: null,
@@ -279,7 +282,7 @@ switch (session.step) {
         }
       } else if (message === '2') {
         const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
-        const services = Object.values(userData.servicos || {})
+        const services = Object.entries(userData.servicos || {})
           .map((s, i) => 
             `*${i+1}. ${s.nome}* - R$ ${s.valor}\n` +
             `${s.descricao || 'Sem descrição disponível'}\n` +
