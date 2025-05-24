@@ -516,7 +516,7 @@ async function processMessage(phone, message, instanceId) {
             },
           };
 
-          const userIdCalendar = await get(ref(db, `${userId}/googleAgenda`)).then(s => s.val().idAgenda);
+          const userIdCalendar = await get(ref(db, `${session.userId}/googleAgenda`)).then(s => s.val().idAgenda);
 
 
           const dataVerifyToken = await verifyAndRefreshToken(session.userId)
