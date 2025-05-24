@@ -154,7 +154,7 @@ async function findUserByInstance(instanceId) {
   try {
     const usersRef = ref(db, '/');
     const snapshot = await get(usersRef);
-    
+
     if (!snapshot.exists()) {
       console.log("Nenhum usuário encontrado");
       return null;
@@ -162,8 +162,8 @@ async function findUserByInstance(instanceId) {
 
     // Correção: acessar userData.tokenZAPI corretamente
     const userEntry = Object.entries(snapshot.val()).find(
-      ([userId, userData]) => 
-        userData.tokenZAPI && 
+      ([userId, userData]) =>
+        userData.tokenZAPI &&
         userData.tokenZAPI.instance === instanceId
     );
 
@@ -186,16 +186,16 @@ async function findUserByInstance(instanceId) {
 
 
 // 6. Processador de Mensagens
-async function processMessage(phone, message,instanceId) {
+async function processMessage(phone, message, instanceId) {
 
-    const userRef = ref(db, '/');
-    const snapshot = await get(userRef) || []
+  const userRef = ref(db, '/');
+  const snapshot = await get(userRef) || []
 
 
-    const findByInstance = await findUserByInstance(instanceId)
+  const findByInstance = await findUserByInstance(instanceId)
 
-    const preId = findByInstance.userEmail;
-const userId = Buffer.from(preId).toString('base64');
+  const preId = findByInstance.userEmail;
+  const userId = Buffer.from(preId).toString('base64');
 
 
 
@@ -220,48 +220,48 @@ const userId = Buffer.from(preId).toString('base64');
     return;
   }
 
-const session = activeSessions[phone];
-if (!session) return;
+  const session = activeSessions[phone];
+  if (!session) return;
 
 
 
-/*
-if (session.step === 'answering_questions') {
-  await sendMessage(phone, activeSessions[phone].questions[0].question);
-  const currentQ = session.questions[session.currentQuestionIndex];
-
-  // Armazena a resposta
-  currentQ.answer = message;
-  console.log(`Resposta registrada: ${currentQ.question} - ${currentQ.answer}`);
-
-  // Verifica se há mais perguntas
-  if (session.currentQuestionIndex < session.questions.length - 1) {
-    session.currentQuestionIndex++;
-    await sendMessage(phone, session.questions[session.currentQuestionIndex].question);
+  /*
+  if (session.step === 'answering_questions') {
+    await sendMessage(phone, activeSessions[phone].questions[0].question);
+    const currentQ = session.questions[session.currentQuestionIndex];
+  
+    // Armazena a resposta
+    currentQ.answer = message;
+    console.log(`Resposta registrada: ${currentQ.question} - ${currentQ.answer}`);
+  
+    // Verifica se há mais perguntas
+    if (session.currentQuestionIndex < session.questions.length - 1) {
+      session.currentQuestionIndex++;
+      await sendMessage(phone, session.questions[session.currentQuestionIndex].question);
+    } else {
+      // Todas perguntas respondidas, inicia agendamento
+      session.step = 'waiting_client_name';
+      await sendMessage(phone, "Obrigado pelas respostas! Agora *digite seu nome* para agendar:");
+  
+      // Opcional: enviar resumo das respostas
+      const summary = session.questions.map(q => `• ${q.question}: ${q.answer}`).join('\n');
+      await sendMessage(phone, `📝 Suas respostas:\n${summary}`);
+    }
+    return;
   } else {
     // Todas perguntas respondidas, inicia agendamento
-    session.step = 'waiting_client_name';
-    await sendMessage(phone, "Obrigado pelas respostas! Agora *digite seu nome* para agendar:");
-
-    // Opcional: enviar resumo das respostas
-    const summary = session.questions.map(q => `• ${q.question}: ${q.answer}`).join('\n');
+    session.step = 'waiting_date';
+  
     await sendMessage(phone, `📝 Suas respostas:\n${summary}`);
-  }
-  return;
-} else {
-  // Todas perguntas respondidas, inicia agendamento
-  session.step = 'waiting_date';
+  
+    await sendMessage(phone, "Obrigado pelas respostas! Informe a data desejada (DD/MM):\n *Ex.: 18/05*");
+  
+    const summary = session.questions.map(q => `• ${q.question}: ${q.answer}`).join('\n');
+  
+  }*/
 
-  await sendMessage(phone, `📝 Suas respostas:\n${summary}`);
-
-  await sendMessage(phone, "Obrigado pelas respostas! Informe a data desejada (DD/MM):\n *Ex.: 18/05*");
-
-  const summary = session.questions.map(q => `• ${q.question}: ${q.answer}`).join('\n');
-
-}*/
-
-// Fluxo principal
-switch (session.step) {
+  // Fluxo principal
+  switch (session.step) {
 
     case 'waiting_initial_choice':
       if (message === '1') {
@@ -269,7 +269,7 @@ switch (session.step) {
         session.questions = await get(ref(db, `${session.userId}/mensagens`))
           .then(s => s.val() || [])
           .catch(() => []);
-        
+
         if (session.questions.length > 0) {
           session.step = 'answering_questions';
           await sendMessage(phone, session.questions[0].question);
@@ -283,13 +283,13 @@ switch (session.step) {
       } else if (message === '2') {
         const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
         const services = Object.entries(userData.servicos || {})
-          .map((s, i) => 
-            `*${i+1}. ${s.nome}* - R$ ${s.valor}\n` +
+          .map((s, i) =>
+            `*${i + 1}. ${s.nome}* - R$ ${s.valor}\n` +
             `${s.descricao || 'Sem descrição disponível'}\n` +
             `──────────────────`
           )
           .join('\n');
-        
+
         await sendMessageAll({
           phone: `+${phone}`,
           message: `💎 *SERVIÇOS DISPONÍVEIS* 💎\n\n${services}\n\n*Digite 1 para iniciar agendamento*`
@@ -329,183 +329,216 @@ switch (session.step) {
       break;
 
 
-  case 'waiting_date':
-    if (/^\d{2}\/\d{2}$/.test(message)) {
+    case 'waiting_date':
+      // Verifica formato DD/MM
+      if (!/^\d{2}\/\d{2}$/.test(message)) {
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: "⚠️ Formato inválido. Por favor, digite a data no formato *DD/MM* (ex: 25/12)"
+        });
+        return;
+      }
+
       const [day, month] = message.split('/').map(Number);
-      const dateObj = new Date(new Date().getFullYear(), month - 1, day);
+      const currentYear = new Date().getFullYear();
+      const dateObj = new Date(currentYear, month - 1, day);
 
-      if (dateObj.getDate() === day && dateObj.getMonth() + 1 === month) {
-        const availableTimes = await getAvailableTimes(session.userId, message);
+      // Validação da data
+      const isInvalidDate = (
+        dateObj.getDate() !== day ||
+        dateObj.getMonth() + 1 !== month ||
+        dateObj < new Date() // Não permite datas passadas
+      );
 
-        if (availableTimes.length > 0) {
-          await update(sessionRef, {
-            step: 'waiting_time',
-            selectedDate: message
-          });
-          await sendMessageAll({
-            phone: `+${phone}`,
-            message: `⏰ Horários disponíveis para ${message}:\n${availableTimes.join('\n')}`
-          });
-        } else {
+      if (isInvalidDate) {
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: "❌ Data inválida ou já passou. Digite uma data válida (DD/MM):"
+        });
+        return;
+      }
+
+      // Formata data para YYYY-MM-DD para consulta
+      const formattedDate = `${currentYear}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+      try {
+        const availableTimes = await getAvailableTimes(session.userId, formattedDate);
+
+        if (availableTimes.length === 0) {
           await sendMessageAll({
             phone: `+${phone}`,
             message: "❌ Todos os horários estão ocupados nesta data. *Escolha outra data (DD/MM):*"
           });
+          return;
         }
+
+        // Atualiza sessão
+        session.selectedDate = formattedDate;
+        session.step = 'waiting_time';
+
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: `⏰ *Horários disponíveis para ${message}:*\n${availableTimes.map(t => `• ${t}`).join('\n')}\n\n*Digite o horário desejado:*`
+        });
+
+      } catch (error) {
+        console.error("Erro ao buscar horários:", error);
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: "⚠️ Erro ao verificar disponibilidade. Tente novamente com outra data:"
+        });
       }
-    }
-    break;
+      break;
+    case 'waiting_time':
+      if (workHours.includes(message)) {
+        session.selectedTime = message;
+        session.step = 'waiting_service';
 
-  case 'waiting_time':
-    if (workHours.includes(message)) {
-      session.selectedTime = message;
-      session.step = 'waiting_service';
+        const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
+        const services = Object.values(userData.servicos || {})
+          .map((s, i) => `${i + 1}. ${s.nome} - R$ ${s.valor}`)
+          .join('\n');
 
-      const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
-      const services = Object.values(userData.servicos || {})
-        .map((s, i) => `${i + 1}. ${s.nome} - R$ ${s.valor}`)
-        .join('\n');
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: `💇 Serviços disponíveis:\n${services}\n\n*Digite o número do serviço:*`
+        });
+      } else {
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: "⚠️ Horário inválido. Escolha da lista:"
+        });
+      }
+      break;
 
-      await sendMessageAll({
-        phone: `+${phone}`,
-        message: `💇 Serviços disponíveis:\n${services}\n\n*Digite o número do serviço:*`
-      });
-    } else {
-      await sendMessageAll({
-        phone: `+${phone}`,
-        message: "⚠️ Horário inválido. Escolha da lista:"
-      });
-    }
-    break;
+    case 'waiting_service':
+      if (/^[1-9]$/.test(message)) {
+        const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
+        const serviceId = Object.keys(userData.servicos || {})[parseInt(message) - 1];
 
-  case 'waiting_service':
-    if (/^[1-9]$/.test(message)) {
-      const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
-      const serviceId = Object.keys(userData.servicos || {})[parseInt(message) - 1];
+        if (serviceId) {
+          session.selectedService = userData.servicos[serviceId];
+          session.step = 'waiting_employee';
 
-      if (serviceId) {
-        session.selectedService = userData.servicos[serviceId];
-        session.step = 'waiting_employee';
+          // Busca funcionários disponíveis
+          const availableEmployees = await getAvailableEmployees(
+            session.userId,
+            session.selectedDate,
+            session.selectedTime
+          );
 
-        // Busca funcionários disponíveis
+          if (availableEmployees.length > 0) {
+            const employeesList = availableEmployees
+              .map((emp, i) => `${i + 1}. ${emp.nome}`)
+              .join('\n');
+
+            await sendMessageAll({
+              phone: `+${phone}`,
+              message: `👤 Profissionais disponíveis:\n${employeesList}\n\nDigite o número do profissional:`
+            });
+          } else {
+            await sendMessageAll({
+              phone: `+${phone}`,
+              message: "❌ Nenhum profissional disponível. Escolha outro horário:"
+            });
+            session.step = 'waiting_time';
+          }
+        }
+      } else {
+        await sendMessageAll({
+          phone: `+${phone}`,
+          message: "⚠️ Serviço inválido. Digite o número:"
+        });
+      }
+      break;
+
+    case 'waiting_employee':
+      if (/^[1-9]$/.test(message)) {
         const availableEmployees = await getAvailableEmployees(
           session.userId,
           session.selectedDate,
           session.selectedTime
         );
 
-        if (availableEmployees.length > 0) {
-          const employeesList = availableEmployees
-            .map((emp, i) => `${i + 1}. ${emp.nome}`)
-            .join('\n');
+        const selectedEmp = availableEmployees[parseInt(message) - 1];
+
+        if (selectedEmp) {
+          // Cria o agendamento
+          const newAppointment = {
+            date: session.selectedDate,
+            time: session.selectedTime,
+            employee: selectedEmp.key,
+            employeeName: selectedEmp.nome,
+            service: session.selectedService.nome,
+            serviceValue: session.selectedService.valor,
+            clientPhone: phone,
+            clientName: session.clientName,
+            establishment: session.userBase64, // Vincula ao Base64 do estabelecimento
+            status: 'confirmed',
+            createdAt: new Date().toISOString()
+          };
+          const { start, end } = formatDateTime(newAppointment.date, newAppointment.time, 30);
+          const eventData = {
+
+            "end": {
+              "dateTime": `${end}`,
+              "timeZone": "America/Sao_Paulo",
+            },
+            "start": {
+              "dateTime": `${start}`,
+              "timeZone": "America/Sao_Paulo",
+            },
+          };
+
+          const userIdCalendar = await get(ref(db, `${userId}/googleAgenda`)).then(s => s.val().idAgenda);
+
+
+          const dataVerifyToken = await verifyAndRefreshToken(session.userId)
+
+          if (dataVerifyToken) {
+            const calendarEvent = await createGoogleCalendarEvent(userIdCalendar, dataVerifyToken.access_token, eventData)
+            console.log('AGENDAMENTO NO GOOGLE AGENDA FEITO COM SUCESSO::::', calendarEvent)
+          }
+
+
+
+          console.log('ACCESS TOKEN SUCESS', dataVerifyToken)
+
+          await push(ref(db, `${session.userId}/agendamentos`), newAppointment);
+
+          // Remove a sessão
+          delete activeSessions[phone];
+
+          // Confirmação final
+          await sendMessageAll({
+            phone: `+${phone}`,
+            message: `✅ Agendamento confirmado com ${selectedEmp.nome}!\n📅 ${newAppointment.date} às ${newAppointment.time}\n💼 ${newAppointment.service}\n💰 R$ ${newAppointment.serviceValue}`
+          });
 
           await sendMessageAll({
             phone: `+${phone}`,
-            message: `👤 Profissionais disponíveis:\n${employeesList}\n\nDigite o número do profissional:`
+            message: `Para *Agendar Novamente* nesse local use o código nos envie o código a abaixo`
+          });
+
+          await sendMessageAll({
+            phone: `+${phone}`,
+            message: `${userId}`
+          });
+
+          // Notifica via Socket.IO
+          io.emit('new_appointment', {
+            userId: session.userId,
+            appointment: newAppointment
           });
         } else {
           await sendMessageAll({
             phone: `+${phone}`,
-            message: "❌ Nenhum profissional disponível. Escolha outro horário:"
+            message: "⚠️ Profissional indisponível. Escolha outro:"
           });
-          session.step = 'waiting_time';
         }
       }
-    } else {
-      await sendMessageAll({
-        phone: `+${phone}`,
-        message: "⚠️ Serviço inválido. Digite o número:"
-      });
-    }
-    break;
-
-  case 'waiting_employee':
-    if (/^[1-9]$/.test(message)) {
-      const availableEmployees = await getAvailableEmployees(
-        session.userId,
-        session.selectedDate,
-        session.selectedTime
-      );
-
-      const selectedEmp = availableEmployees[parseInt(message) - 1];
-
-      if (selectedEmp) {
-        // Cria o agendamento
-        const newAppointment = {
-          date: session.selectedDate,
-          time: session.selectedTime,
-          employee: selectedEmp.key,
-          employeeName: selectedEmp.nome,
-          service: session.selectedService.nome,
-          serviceValue: session.selectedService.valor,
-          clientPhone: phone,
-          clientName: session.clientName,
-          establishment: session.userBase64, // Vincula ao Base64 do estabelecimento
-          status: 'confirmed',
-          createdAt: new Date().toISOString()
-        };
-        const { start, end } = formatDateTime(newAppointment.date, newAppointment.time, 30);
-        const eventData = {
-
-          "end": {
-            "dateTime": `${end}`,
-            "timeZone": "America/Sao_Paulo",
-          },
-          "start": {
-            "dateTime": `${start}`,
-            "timeZone": "America/Sao_Paulo",
-          },
-        };
-
-        const userIdCalendar = await get(ref(db, `${userId}/googleAgenda`)).then(s => s.val().idAgenda);
-
-
-        const dataVerifyToken = await verifyAndRefreshToken(session.userId)
-
-        if (dataVerifyToken) {
-          const calendarEvent = await createGoogleCalendarEvent(userIdCalendar, dataVerifyToken.access_token, eventData)
-          console.log('AGENDAMENTO NO GOOGLE AGENDA FEITO COM SUCESSO::::', calendarEvent)
-        }
-
-
-
-        console.log('ACCESS TOKEN SUCESS', dataVerifyToken)
-
-        await push(ref(db, `${session.userId}/agendamentos`), newAppointment);
-
-        // Remove a sessão
-        delete activeSessions[phone];
-
-        // Confirmação final
-        await sendMessageAll({
-          phone: `+${phone}`,
-          message: `✅ Agendamento confirmado com ${selectedEmp.nome}!\n📅 ${newAppointment.date} às ${newAppointment.time}\n💼 ${newAppointment.service}\n💰 R$ ${newAppointment.serviceValue}`
-        });
-
-        await sendMessageAll({
-          phone: `+${phone}`,
-          message: `Para *Agendar Novamente* nesse local use o código nos envie o código a abaixo`
-        });
-
-        await sendMessageAll({
-          phone: `+${phone}`,
-          message: `${userId}`
-        });
-
-        // Notifica via Socket.IO
-        io.emit('new_appointment', {
-          userId: session.userId,
-          appointment: newAppointment
-        });
-      } else {
-        await sendMessageAll({
-          phone: `+${phone}`,
-          message: "⚠️ Profissional indisponível. Escolha outro:"
-        });
-      }
-    }
-    break;
-}
+      break;
+  }
 }
 
 
@@ -741,11 +774,11 @@ app.post('/webhook', async (req, res) => {
 
   console.log('Mensagem Contato', message)
 
-  
+
   console.log('Instance ID', instanceId)
 
   try {
-    await processMessage(phone, message,instanceId);
+    await processMessage(phone, message, instanceId);
     res.status(200).json({ success: true });
   } catch (error) {
     console.error("Erro:", error);
