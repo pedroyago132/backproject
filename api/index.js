@@ -54,14 +54,19 @@ app.use(cors({ origin: 'http://localhost:3000' }));
 
 // 4. Função para enviar mensagens
 async function sendMessageAll(body) {
+
+  const bodyT = {
+    phone:body.phone,
+    message:body.message
+  }
   try {
-    const response = await fetch(`${Globalurl}/instances/3E19757BC3D3C0A275782A6BCFBBBF38/token/1591F8E112B23AA7B12BB43E/send-text`, {
+    const response = await fetch(`${Globalurl}/instances/${body.instance}/token/${body.token}/send-text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Client-Token': 'Fbd62247981a742ec897582f51b86779aS',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(bodyT),
     });
 
     if (!response.ok) throw new Error(`Erro: ${response.statusText}`);
@@ -238,6 +243,8 @@ async function processMessage(phone, message, instanceId) {
 
     await sendMessageAll({
       phone: `+${phone}`,
+      instance: findByInstance.instance,
+      token: findByInstance.token,
       message: "👋 *Bem-vindo!* Escolha uma opção:\n\n1. Iniciar agendamento\n2. Conhecer serviços e valores"
     });
     return;
@@ -295,11 +302,15 @@ async function processMessage(phone, message, instanceId) {
 
         if (session.questions.length > 0) {
           session.step = 'answering_questions';
-          await sendMessage(phone, session.questions[0].question);
+          await sendMessageAll({phone: `+${phone}`,
+            instance: findByInstance.instance,
+            token: findByInstance.token, message:session.questions[0].question});
         } else {
           session.step = 'waiting_client_name';
           await sendMessageAll({
             phone: `+${phone}`,
+            instance: findByInstance.instance,
+            token: findByInstance.token,
             message: "Por favor, digite seu *nome completo* para continuar:"
           });
         }
@@ -315,11 +326,15 @@ async function processMessage(phone, message, instanceId) {
 
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: `💎 *SERVIÇOS DISPONÍVEIS* 💎\n\n${services}\n\n*Digite 1 para iniciar agendamento*`
         });
       } else {
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: "⚠️ Opção inválida. Por favor, *digite*\n\n1️⃣ Para *Iniciar Agendamento*\n2️⃣ Para *Ver Serviços*"
         });
       }
@@ -337,6 +352,8 @@ async function processMessage(phone, message, instanceId) {
         const summary = session.questions.map(q => `• ${q.question}: ${q.answer}`).join('\n');
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: `📋 *Resumo das Respostas*\n${summary}\n\nPor favor, digite seu *nome completo* para continuar:`
         });
       }
@@ -347,6 +364,8 @@ async function processMessage(phone, message, instanceId) {
       session.step = 'waiting_date';
       await sendMessageAll({
         phone: `+${phone}`,
+        instance: findByInstance.instance,
+        token: findByInstance.token,
         message: `👋 *Olá ${message}!* Informe a data desejada (DD/MM):\n*Exemplo: 25/12*`
       });
       break;
@@ -357,6 +376,8 @@ async function processMessage(phone, message, instanceId) {
       if (!/^\d{2}\/\d{2}$/.test(message)) {
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: "⚠️ Formato inválido. Por favor, digite a data no formato *DD/MM* (ex: 25/12)"
         });
         return;
@@ -390,6 +411,8 @@ async function processMessage(phone, message, instanceId) {
         if (availableTimes.length === 0) {
           await sendMessageAll({
             phone: `+${phone}`,
+            instance: findByInstance.instance,
+            token: findByInstance.token,
             message: "❌ Todos os horários estão ocupados nesta data. *Escolha outra data (DD/MM):*"
           });
           return;
@@ -401,6 +424,8 @@ async function processMessage(phone, message, instanceId) {
 
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: `⏰ *Horários disponíveis para ${message}:*\n${availableTimes.map(t => `• ${t}`).join('\n')}\n\n*Digite o horário desejado: *Exemplo: 10:00**`
         });
 
@@ -408,6 +433,8 @@ async function processMessage(phone, message, instanceId) {
         console.error("Erro ao buscar horários:", error);
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: "⚠️ Erro ao verificar disponibilidade. Tente novamente com outra data:"
         });
       }
@@ -425,12 +452,16 @@ async function processMessage(phone, message, instanceId) {
 
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: `💇 Serviços disponíveis:\n${services}\n\n*Digite o número do serviço:*`
         });
       } else {
         const availableTimes = await getAvailableTimes(session.userId, session.selectedDate);
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: `⚠️ Horário inválido. Escolha da lista: no formato: >> *10:00*\n\n${availableTimes}`
         });
         session.step = 'waiting_service'
@@ -460,11 +491,15 @@ async function processMessage(phone, message, instanceId) {
 
             await sendMessageAll({
               phone: `+${phone}`,
+              instance: findByInstance.instance,
+              token: findByInstance.token,
               message: `👤 Profissionais disponíveis:\n${employeesList}\n\nDigite o número do profissional:`
             });
           } else {
             await sendMessageAll({
               phone: `+${phone}`,
+              instance: findByInstance.instance,
+              token: findByInstance.token,
               message: "❌ Nenhum profissional disponível. Escolha outro horário:"
             });
             session.step = 'waiting_time';
@@ -473,6 +508,8 @@ async function processMessage(phone, message, instanceId) {
       } else {
         await sendMessageAll({
           phone: `+${phone}`,
+          instance: findByInstance.instance,
+          token: findByInstance.token,
           message: "⚠️ Serviço inválido. Digite o número:"
         });
       }
@@ -528,7 +565,7 @@ async function processMessage(phone, message, instanceId) {
               console.log('AGENDAMENTO NO GOOGLE AGENDA FEITO COM SUCESSO::::', calendarEvent)
             }
 
-          console.log('ACCESS TOKEN SUCESS', dataVerifyToken)
+            console.log('ACCESS TOKEN SUCESS', dataVerifyToken)
 
           }
 
@@ -542,16 +579,22 @@ async function processMessage(phone, message, instanceId) {
           // Confirmação final
           await sendMessageAll({
             phone: `+${phone}`,
+            instance: findByInstance.instance,
+            token: findByInstance.token,
             message: `✅ Agendamento confirmado com ${selectedEmp.nome}!\n📅 ${newAppointment.date} às ${newAppointment.time}\n💼 ${newAppointment.service}\n💰 R$ ${newAppointment.serviceValue}`
           });
 
           await sendMessageAll({
             phone: `+${phone}`,
+            instance: findByInstance.instance,
+            token: findByInstance.token,
             message: `Para *Agendar Novamente* nesse local use o código nos envie o código a abaixo`
           });
 
           await sendMessageAll({
             phone: `+${phone}`,
+            instance: findByInstance.instance,
+            token: findByInstance.token,
             message: `${userId}`
           });
 
@@ -563,6 +606,8 @@ async function processMessage(phone, message, instanceId) {
         } else {
           await sendMessageAll({
             phone: `+${phone}`,
+            instance: findByInstance.instance,
+            token: findByInstance.token,
             message: "⚠️ Profissional indisponível. Escolha outro:"
           });
         }
