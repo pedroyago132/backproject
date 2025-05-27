@@ -99,8 +99,9 @@ async function getAvailableEmployees(userId, date, time) {
   const userData = await get(ref(db, `${userId}`)).then(s => s.val());
   const appointments = Object.values(userData.agendamentos || {});
 
-  return Object.entries(userData.funcionarios || {})
-    .filter(([empKey, emp]) => {
+  const userDataFunc = userData.funcionarios || []
+
+  return userDataFunc.filter(([empKey, emp]) => {
       return !appointments.some(a =>
         a.date === date &&
         a.time === time &&
@@ -316,7 +317,7 @@ async function processMessage(phone, message, instanceId) {
         }
       } else if (message === '2') {
         const userData = await get(ref(db, `${session.userId}/servicos`)).then(s => s.val());
-        const services = Object.entries(userData.servicos)
+        const services = userData.servicos
           .map((s, i) =>
             `*${i + 1}. ${s.nome}* - R$ ${s.valor}\n` +
             `${s.descricao || 'Sem descrição disponível'}\n` +
