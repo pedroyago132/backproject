@@ -315,7 +315,7 @@ async function processMessage(phone, message, instanceId) {
           });
         }
       } else if (message === '2') {
-        const userData = await get(ref(db, `${session.userId}`)).then(s => s.val());
+        const userData = await get(ref(db, `${session.userId}/servicos`)).then(s => s.val());
         const services = Object.entries(userData.servicos)
           .map((s, i) =>
             `*${i + 1}. ${s.nome}* - R$ ${s.valor}\n` +
@@ -896,5 +896,5 @@ server.listen(PORT, () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
   console.log(`📌 Estrutura Firebase: {userId}/agendamentos`);
   console.log('Sessões', activeSessions);
-
+  configureWebhook()
 });
