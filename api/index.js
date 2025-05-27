@@ -53,14 +53,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: 'http://localhost:3000' }));
 
 // 4. Função para enviar mensagens
-async function sendMessageAll({body}) {
+async function sendMessageAll({phone,instance,token,message}) {
 
   const bodyT = {
-    phone:body.phone,
-    message:body.message
+    phone,
+    message
   }
   try {
-    const response = await fetch(`${Globalurl}/instances/${body.instance}/token/${body.token}/send-text`, {
+    const response = await fetch(`${Globalurl}/instances/${instance}/token/${token}/send-text`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
