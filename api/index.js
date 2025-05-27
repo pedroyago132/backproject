@@ -64,7 +64,7 @@ async function sendMessageAll({phone,instance,token,message}) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Client-Token': 'Fbd62247981a742ec897582f51b86779aS',
+        'Client-Token': 'F5bb9f7305274405a91511d3f1840f1c0S',
       },
       body: JSON.stringify(bodyT),
     });
