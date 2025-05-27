@@ -366,7 +366,7 @@ async function processMessage(phone, message, instanceId) {
         phone: `+${phone}`,
         instance: findByInstance.instance,
         token: findByInstance.token,
-        message: `👋 *Olá ${message}!* Informe a data desejada (DD/MM):\n*Exemplo: 25/12*`
+        message: `👋 *Olá ${session.clientName}!* Informe a data desejada (DD/MM):\n*Exemplo: 25/12*`
       });
       break;
 
