@@ -53,7 +53,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: 'http://localhost:3000' }));
 
 // 4. Função para enviar mensagens
-async function sendMessageAll(body) {
+async function sendMessageAll({body}) {
 
   const bodyT = {
     phone:body.phone,
