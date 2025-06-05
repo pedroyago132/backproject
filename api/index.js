@@ -1200,7 +1200,7 @@ app.post('/webhook', async (req, res) => {
 async function configureWebhook() {
   try {
     const response = await axios.put(
-      "https://api.z-api.io/instances/3E19757BC3D3C0A275782A6BCFBBBF38/token/1591F8E112B23AA7B12BB43E/update-webhook-received",
+      "https://api.z-api.io/instances/3E23C06FA72A60DFF509C6E882E8CF29/token/D4958B0283F56F0965B846A5/update-webhook-received",
       {
         value: "https://backproject.vercel.app/webhook",
         enabled: true, // Adicione esta linha para garantir ativação
@@ -1208,7 +1208,7 @@ async function configureWebhook() {
       },
       {
         headers: {
-          'Client-Token': 'Fbd62247981a742ec897582f51b86779aS',
+          'Client-Token': 'F6f5e779a04f5435cbe443d6fdea0699cS',
           'Content-Type': 'application/json' // Adicione este header
         }
       }
