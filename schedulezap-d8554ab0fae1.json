@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "schedulezap",
+  "private_key_id": "d8554ab0fae14a156f43c26cdcb9dbef78ff43c3",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDyNo6AWtU415ko\n6JOxX0ku7j/fZeT7LMSMH/2r+gcptTsnE5IqhwWdNQmX5bQaY0+WlH3VKEcwcaOn\nQIf+5wUkWKAlxTsPt5j8C08WJ7ndtqB23Icth3ebx8f/EeDAMN80tIfqKrc8RQ31\nsy4YBvqTASXLf3mwi07Divef6xkKakjBHtCm578O1a2Drtte2dIOk9nOQpkSdkMh\n6ixhqhtoYMIV0aRG3MF8xBW18/rcE0pt+xuH4Ztvt6fGc6ABnyw1eO5DdB1t5NeI\nw1JubfjSkKVSSb5Uf9CTHghOMn/zsZ0PQVUMJPxuiP7Vx4PfzJY6SigkSEqgZmWl\nvdK4v+fpAgMBAAECggEAICPJonILH40KQ4GjEXL3oszV+GaMrSCqXv6iukaF20yz\nUfLYnyCGB++A+6EtFiBN8Aj5roZ29dBqexfGw/XzOnixHXnvpZ0C5ZT5lFLGqMsi\nPUtze4Dhh/AJU4kTheUmRRfcfh/Xax2tpcf2KpWIe+e31Gowo1LE65Ed3SBE1Rr1\nwRcs4O9MAMs/1/GPHlv0qOZNV5sBwzIA4J6d4Ij+nw2tQ9FpgCzUF2l6yxsHB68b\nbRtaom/jRUowq/C+lUcQYSIzGBjshPIEGyA4yHZb/5MQXjBHNn1/FpNG4pSjGJ7f\nsan97FEJ3EQYkCV1VgR992MAdNTIHoxYmQjh2+g4FQKBgQD6RDfc1q6MgBdojOs0\n2qHERbbEoYZLiViBSCwjUOcZSXs9C+2Z0d05gLT26EYeJYe/KidQq7WVuq/U/SYT\nUyOg3dgZNuDTVyXAhxc+PEg19l+h3R114NfLcWQC0gmZNeMe/u9sg6R8uamvjE/P\nNK6twJGYMLkJXNsDvmZwBihWRQKBgQD3wxs/91dhb1U1ZJXjJXpeo+mnKQ9sxU09\nESMtUjxPaoGvpndWzygxIM2MbY4Bm3ruLXfhRLwowzalR1vbDz2rHWIFBFUKFG88\n45d11DEnorgmdZpW/HpWXR1Hs9sTq8ExIkOoZLxmYYM5s6oapGy8cnrqnE5HiCLO\nnUEARyfnVQKBgE7Lj7MOPKKr6bLXO27Gr0v2jxbVrEy4D4+Uw6DS5hAGHLEZwlM9\nyiNCrLdYZkszkcvUX9B8X42m25l5orVO5dbOQi2eI6cmtxIo9l536FxlF7MExTPJ\n+Odq6gwhSThdyQaHSaamw/EpG43T5YTdl2nJSY3bOUcDX0mMdwAqUCTpAoGBAOFh\nscs5lFqFLY0ZiCQOdsfa8fTnLCn1PXL8wPQ8Z7KSn5CKrOriHZy7S2CgVFrv9h7u\na6wXm9a05mPpiwy2S5H6c60+qKE3v40zOBeuxFxa8IvD1Xelyx//KmCMoxC84Exy\n7/siUCQONpJp9qavxl6TAW+kaq01kPxFHtlC4XDVAoGAMCeWGt/o0FOjYTN7eFUV\ngA8J0lKHEvdikD9outKv/5nlEsx2bOMOHqAjyHFW41+ZK1O6DVei59RPwG/rAvjq\njsWhOlE0zs2D+Q3gaRt2/vc25dortfmXa0LQUAeSV+vqpoMY8jWzK6TypPAOk7tJ\naBR+U3BSCUi8DfrO3uJJGwM=\n-----END PRIVATE KEY-----\n",
+  "client_email": "conta-de-pedro@schedulezap.iam.gserviceaccount.com",
+  "client_id": "112127547548462154528",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/conta-de-pedro%40schedulezap.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
