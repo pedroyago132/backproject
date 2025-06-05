@@ -46,7 +46,7 @@ const keyFilePath = path.join(__dirname, '..', 'schedulezap-d8554ab0fae1.json');
 
 
 const vertex_ai = new VertexAI({ project: PROJECT_ID, location: LOCATION });
-const storage = new Storage({ projectId: PROJECT_ID, keyFilename: keyFilePath });
+const storage = new Storage({ projectId: PROJECT_ID});
 
 
 const bucketName = 'bucket_videogen';
